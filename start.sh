@@ -3,4 +3,4 @@ git clone https://github.com/konichiwa55115/telegramtawasolbotmaker /LazyDevelop
 cd /LazyDeveloper
 pip3 install -r requirements.txt
 echo "Starting Bot...."
-gunicorn app:app & python3 bot.py
+gunicorn app:app & python3 main.py
