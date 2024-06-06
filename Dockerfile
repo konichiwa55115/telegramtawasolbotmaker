@@ -5,7 +5,7 @@ RUN git clone --recursive https://github.com/tdlib/telegram-bot-api.git
 RUN cd telegram-bot-api
 RUN rm -rf build
 RUN mkdir build 
-COPY CMakeLists.txt build/CMakeLists.txt
+RUN cp CMakeLists.txt build/CMakeLists.txt
 RUN cd build
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=.. ..
 RUN cmake --build . --target install
