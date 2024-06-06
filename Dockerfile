@@ -4,8 +4,7 @@ RUN apt-get install git curl python3-pip dos2unix make git zlib1g-dev libssl-dev
 RUN git clone --recursive https://github.com/tdlib/telegram-bot-api.git
 RUN cd telegram-bot-api
 RUN rm -rf build
-RUN mkdir build
-RUN cd build
+RUN mkdir build 
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=.. ..
 RUN cmake --build . --target install
 RUN cd ../..
