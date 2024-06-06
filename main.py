@@ -5,7 +5,7 @@ import telebot
 from telebot import apihelper
 
 BOT_TOKEN = '6026272284:AAG8qBeaZc5xjYmYfMq1YWsKimoK0D0ap_0'
-apihelper.API_URL = 'http://localhost:8081/bot{0}/{1}'
+apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
 bot = telebot.TeleBot(BOT_TOKEN)
 
 conn = sqlite3.connect('bots.db', check_same_thread=False, timeout=10)
