@@ -5,11 +5,13 @@ RUN git clone --recursive https://github.com/tdlib/telegram-bot-api.git
 RUN cd telegram-bot-api
 RUN rm -rf build
 RUN mkdir build 
+RUN cd build
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=.. ..
 RUN cmake --build . --target install
 RUN cd ../..
 RUN cd telegram-bot-api/bin/
 RUN ./telegram-bot-api --api-id=17983098 --api-hash=ee28199396e0925f1f44
+RUN cd ../..
 RUN pip3 install -U pip
 COPY requirements.txt /requirements.txt
 RUN cd /
