@@ -290,7 +290,6 @@ def run_bot(bot):
                 switch[message.text](message, bot)
             else:
                 reply_to_message = message.json.get('reply_to_message', None)
-                print(reply_to_message)
                 if reply_to_message and 'forward_from' in reply_to_message:
                     forward_user_id = reply_to_message['forward_from']['id']
                     bot.send_message(forward_user_id, message.text)
@@ -298,18 +297,16 @@ def run_bot(bot):
                     if reply_to_message and 'text' in reply_to_message :
                      forrwardedmessagetext = reply_to_message['text']   
                     elif reply_to_message and 'photo' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['photo'][2]['file_unique_id']
-                     print(forrwardedmessagetext)
+                     forrwardedmessagetext = reply_to_message['photo'][1]['file_unique_id']
                     elif reply_to_message and 'audio' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['audio'][2]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['audio'][1]['file_unique_id']
                     elif reply_to_message and 'document' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['document'][2]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['document'][1]['file_unique_id']
                     elif reply_to_message and 'voice' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['voice'][2]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['voice'][1]['file_unique_id']
                     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
                     c_local = conn_local.cursor()
                     useridbytext = c_local.execute('SELECT user_id FROM messages WHERE rawmessage=?', (forrwardedmessagetext,)).fetchone()[0]
-                    print(useridbytext)
                     conn_local.commit()
                     c_local.close()
                     bot.send_message(useridbytext, message.text)
@@ -362,17 +359,16 @@ def run_bot(bot):
             last_name = message.from_user.last_name or ''
             id_user = message.from_user.id
             fullname = f"{first_name} {last_name}"
-            #print(fullname)
             if message.text :
                 text = message.text
             elif message.photo :
-                text = message.photo[2].file_unique_id
+                text = message.photo[1].file_unique_id
             elif message.audio :
-                text = message.audio[2].file_unique_id
+                text = message.audio[1].file_unique_id
             elif message.voice :
-                 text = message.voice[2].file_unique_id
+                 text = message.voice[1].file_unique_id
             elif message.document :
-                 text = message.document[2].file_unique_id
+                 text = message.document[1].file_unique_id
 
             pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: {message.text}"
             c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
