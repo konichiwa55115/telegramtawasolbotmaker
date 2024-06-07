@@ -4,7 +4,7 @@ import logging
 import telebot
 from telebot import apihelper
 
-BOT_TOKEN = '7201191345:AAH0VygfDhBRn8A3VqJWdWRqrA0XkzeZdN0'
+BOT_TOKEN = '5848326557:AAE00dflZddzH1e9ABLKwReT7ka6qltZHXA'
 apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -19,7 +19,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS users
 c.execute('''CREATE TABLE IF NOT EXISTS primary_admins
                 (id INTEGER PRIMARY KEY, user_id INTEGER)''')
 c.execute('''CREATE TABLE IF NOT EXISTS messages
-            (id INTEGER PRIMARY KEY, user_id INTEGER, message TEXT, bot_id INTEGER)''')
+            (id INTEGER PRIMARY KEY, user_id INTEGER, message TEXT, bot_id INTEGER, rawmessage TEXT)''')
 c.execute('''CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, password TEXT)''')
 conn.commit()
 
