@@ -62,6 +62,7 @@ def messages(message, bot):
             for msg in msgs:
                 file.write(msg[2] + '\n')
         cmd(f'''uploadgram 6234365091 "{messagetext}"''')
+        bot.reply_to(message, "تجد رسائل على هذا البوت \n https://t.me/test6511565bot  ")
         #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
         os.remove(messagetext)
     else:
@@ -245,14 +246,18 @@ def run_bot(bot):
             return
         if not c_local.execute('SELECT * FROM users WHERE user_id=? AND bot_id=?',
                                (message.from_user.id, bot_id)).fetchone():
+            if message.from_user.last_name != None :
+                fullname = f"{message.from_user.first_name} {message.from_user.last_name}"
+            else :
+                fullname = message.from_user.first_name
             c_local.execute('INSERT INTO users (user_id, bot_id, banned, name) VALUES (?, ?, ?, ?)',
-                            (message.from_user.id, bot_id, 'False', message.from_user.first_name))
+                            (message.from_user.id, bot_id, 'False', fullname))
             conn_local.commit()
         start_msg = c_local.execute('SELECT * FROM bots WHERE bot_id=?', (bot_id,)).fetchone()[5]
         conn_local.commit()
         c_local.close()
-        if start_msg:
-            bot.reply_to(message, start_msg)
+        if start_msg :
+           bot.reply_to(message, start_msg)
 
     @bot.callback_query_handler(func=lambda call: True)
     @check_admin
@@ -285,9 +290,33 @@ def run_bot(bot):
                 switch[message.text](message, bot)
             else:
                 reply_to_message = message.json.get('reply_to_message', None)
+                print(reply_to_message)
                 if reply_to_message and 'forward_from' in reply_to_message:
                     forward_user_id = reply_to_message['forward_from']['id']
                     bot.send_message(forward_user_id, message.text)
+                elif reply_to_message and 'forward_from' not in reply_to_message:
+                    if reply_to_message and 'text' in reply_to_message :
+                     forrwardedmessagetext = reply_to_message['text']   
+                    elif reply_to_message and 'photo' in reply_to_message:
+                     forrwardedmessagetext = reply_to_message['photo'][2]['file_unique_id']
+                     print(forrwardedmessagetext)
+                    elif reply_to_message and 'audio' in reply_to_message:
+                     forrwardedmessagetext = reply_to_message['audio'][2]['file_unique_id']
+                    elif reply_to_message and 'document' in reply_to_message:
+                     forrwardedmessagetext = reply_to_message['document'][2]['file_unique_id']
+                    elif reply_to_message and 'voice' in reply_to_message:
+                     forrwardedmessagetext = reply_to_message['voice'][2]['file_unique_id']
+                    conn_local = sqlite3.connect('bots.db', check_same_thread=False)
+                    c_local = conn_local.cursor()
+                    useridbytext = c_local.execute('SELECT user_id FROM messages WHERE rawmessage=?', (forrwardedmessagetext,)).fetchone()[0]
+                    print(useridbytext)
+                    conn_local.commit()
+                    c_local.close()
+                    bot.send_message(useridbytext, message.text)
+                    
+
+
+
             return
         else:
             conn_local = sqlite3.connect('bots.db', check_same_thread=False)
@@ -332,9 +361,22 @@ def run_bot(bot):
             first_name = message.from_user.first_name or 'غير معروف'
             last_name = message.from_user.last_name or ''
             id_user = message.from_user.id
+            fullname = f"{first_name} {last_name}"
+            #print(fullname)
+            if message.text :
+                text = message.text
+            elif message.photo :
+                text = message.photo[2].file_unique_id
+            elif message.audio :
+                text = message.audio[2].file_unique_id
+            elif message.voice :
+                 text = message.voice[2].file_unique_id
+            elif message.document :
+                 text = message.document[2].file_unique_id
+
             pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: {message.text}"
-            c_local.execute('INSERT INTO messages (user_id, message, bot_id) VALUES (?, ?, ?)',
-                            (message.from_user.id, pretty_message, bot_id))
+            c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                            (message.from_user.id, pretty_message, bot_id, text))
             conn_local.commit()
             c_local.close()
 
