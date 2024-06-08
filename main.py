@@ -3,6 +3,8 @@ import sqlite3
 import logging
 import telebot
 from telebot import apihelper
+from os import system as cmd
+
 
 BOT_TOKEN = '7201191345:AAH0VygfDhBRn8A3VqJWdWRqrA0XkzeZdN0'
 apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
