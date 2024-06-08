@@ -4,7 +4,7 @@ import logging
 import telebot
 from telebot import apihelper
 
-BOT_TOKEN = '7201191345:AAH0VygfDhBRn8A3VqJWdWRqrA0XkzeZdN0'
+BOT_TOKEN = '5848326557:AAE00dflZddzH1e9ABLKwReT7ka6qltZHXA'
 apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -13,7 +13,7 @@ c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS bots
              (id INTEGER PRIMARY KEY, token TEXT, bot_id INTEGER, username TEXT, receiptMsg TEXT, startMsg TEXT,subscriptionBot TEXT)''')
 c.execute('''CREATE TABLE IF NOT EXISTS admins
-             (id INTEGER PRIMARY KEY, username TEXT, chat_id INTEGER, bot_id INTEGER)''')
+             (id INTEGER PRIMARY KEY, username TEXT, chat_id INTEGER, bot_id INTEGER,admin_user_id INTEGER)''')
 c.execute('''CREATE TABLE IF NOT EXISTS users
              (id INTEGER PRIMARY KEY, user_id INTEGER, bot_id INTEGER, banned TEXT, name TEXT)''')
 c.execute('''CREATE TABLE IF NOT EXISTS primary_admins
@@ -145,6 +145,7 @@ def add_bot(message):
         bot_id = bot_info.id
         name = bot_info.first_name
         username = bot_info.username
+        admin_user_id = message.from_user.id
         username_admin = message.from_user.username
         msg_start = "أهلا وسهلا بك! أرسل رسالتك وسنرد عليك في أقرب وقت ممكن"
         msg_receipt = "تم استلام رسالتك وسنرد عليك في أقرب وقت ممكن"
@@ -152,7 +153,7 @@ def add_bot(message):
         with conn:
             c.execute('INSERT INTO bots (token, bot_id, username, receiptMsg, startMsg) VALUES (?, ?, ?, ?, ?)',
                       (message.text, bot_id, username, msg_receipt, msg_start))
-            c.execute('INSERT INTO admins (username, bot_id) VALUES (?, ?)', (username_admin, bot_id))
+            c.execute('INSERT INTO admins (username,bot_id,admin_user_id) VALUES (?, ?,?)', (username_admin, bot_id,admin_user_id))
             conn.commit()
         bot.reply_to(message,
                      f"* تم إنشاء بوتك التواصل بنجاح.\n- اسم البوت :{name} \n- معرف البوت : @{username}\n- رقم البوت {bot_id}\n- يمكنك الآن إدارة بوتك بكل سهولة، ستجد رسالة في داخل البوت المصنوع ")
@@ -194,7 +195,8 @@ def view_messages(message):
             if msg:
                 file.write(msg[2] + '\n')
     if os.path.getsize('messages.txt') > 0:
-        bot.send_document(message.chat.id, open('messages.txt', 'rb'))
+        cmd(f'''uploadgram {message.chat.id} messages.txt''')
+        #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
         os.remove('messages.txt')
     else:
         bot.reply_to(message, "لا يوجد رسائل")
