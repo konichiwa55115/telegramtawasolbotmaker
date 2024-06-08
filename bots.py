@@ -15,18 +15,15 @@ conn = sqlite3.connect('bots.db', check_same_thread=False)
 c = conn.cursor()
 
 
-def check_admin_handler(message):
+def check_admin_handler(message,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False, timeout=10)
     c_local = conn_local.cursor()
     username = message.from_user.username
-    res = c_local.execute('SELECT * FROM admins WHERE username=? AND bot_id=?', (username, bot_id)).fetchone()
-    if res:
-        if not res[2]:
-            c_local.execute('UPDATE admins SET chat_id=? WHERE username=? AND bot_id=?',
-                            (message.chat.id, message.from_user.username, bot_id))
-            conn_local.commit()
+    user_id = message.from_user.id
+    admin_user_id = c_local.execute('SELECT admin_user_id FROM admins WHERE bot_id=?', (bot_id,)).fetchone()[0]
+    if user_id == int(admin_user_id) :
         conn_local.close()
-        return True
+        return True   
     conn_local.close()
     return False
 
@@ -34,14 +31,13 @@ def check_admin_handler(message):
 def check_admin(func):
     def wrapper(*args, **kwargs):
         message = args[0]
-        is_admin = check_admin_handler(message)
+        is_admin = check_admin_handler(message,bot_id)
         if is_admin:
             return func(*args, **kwargs)
-
     return wrapper
 
 
-def admin_menu(message, bot):
+def admin_menu(message, bot,bot_id):
     bottom = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     bottom.row('الرسائل', 'إرسال رسالة')
     bottom.row('المستخدمين', 'الإحصائيات')
@@ -50,10 +46,11 @@ def admin_menu(message, bot):
     bot.reply_to(message, "يمكنك الآن الإختيار من القائمة", reply_markup=bottom)
 
 
-def messages(message, bot):
+def messages(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     msgs = c_local.execute('SELECT * FROM messages WHERE bot_id=?', (bot_id,)).fetchall()
+    admin_user_id = c_local.execute('SELECT admin_user_id FROM admins WHERE bot_id=?', (bot_id,)).fetchone()[0]
     conn_local.commit()
     c_local.close()
     messagetext = f"{bot_id}-message.txt"
@@ -61,20 +58,20 @@ def messages(message, bot):
         with open(messagetext, 'w') as file:
             for msg in msgs:
                 file.write(msg[2] + '\n')
-        cmd(f'''uploadgram 6234365091 "{messagetext}"''')
         bot.reply_to(message, "تجد رسائل على هذا البوت \n https://t.me/test6511565bot  ")
+        cmd(f'''uploadgram {admin_user_id} "{messagetext}"''')
         #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
         os.remove(messagetext)
     else:
         bot.reply_to(message, "لا توجد رسائل")
 
 
-def send_message(message, bot):
+def send_message(message, bot,bot_id):
     bot.reply_to(message, "أرسل الرسالة")
     bot.register_next_step_handler(message, send_message_to_users, bot)
 
 
-def send_message_to_users(message, bot):
+def send_message_to_users(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     all_users = c.execute('SELECT * FROM users WHERE bot_id=?', (bot_id,)).fetchall()
@@ -87,7 +84,7 @@ def send_message_to_users(message, bot):
     bot.reply_to(message, "تم الإرسال بنجاح")
 
 
-def users(message, bot):
+def users(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     all_users = c_local.execute('SELECT * FROM users WHERE bot_id=?', (bot_id,)).fetchall()
@@ -106,7 +103,7 @@ def users(message, bot):
         bot.reply_to(message, "لا توجد مستخدمين")
 
 
-def stats(message, bot):
+def stats(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     users_stats = c_local.execute('SELECT * FROM users WHERE bot_id=?', (bot_id,)).fetchall()
@@ -116,23 +113,23 @@ def stats(message, bot):
     c_local.close()
 
 
-def ban(message, bot):
+def ban(message, bot,bot_id):
     bot.reply_to(message, "أرسل معرف المستخدم")
     bot.register_next_step_handler(message, ban_user, bot)
 
 
-def ban_user(message, bot):
+def ban_user(message, bot,bot_id):
     c.execute('UPDATE users SET banned=? WHERE user_id=? AND bot_id=?', ('True', message.text, bot_id))
     conn.commit()
     bot.reply_to(message, "تم الحظر بنجاح")
 
 
-def unban(message, bot):
+def unban(message, bot,bot_id):
     bot.reply_to(message, "أرسل معرف المستخدم")
     bot.register_next_step_handler(message, unban_user, bot)
 
 
-def unban_user(message, bot):
+def unban_user(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     c_local.execute('UPDATE users SET banned=? WHERE user_id=? AND bot_id=?', ('False', message.text, bot_id))
@@ -141,7 +138,7 @@ def unban_user(message, bot):
     bot.reply_to(message, "تم الإلغاء بنجاح")
 
 
-def settings(message, bot):
+def settings(message, bot,bot_id):
     markup = telebot.types.InlineKeyboardMarkup()
     markup.add(telebot.types.InlineKeyboardButton('تغيير الإسم', callback_data='set_name'))
     markup.add(telebot.types.InlineKeyboardButton('تغيير الوصف', callback_data='set_description'))
@@ -151,96 +148,96 @@ def settings(message, bot):
     bot.reply_to(message, "مرحبًا بك في قائمة الإعدادات", reply_markup=markup)
 
 
-def require_subscription(message, bot):
+def require_subscription(message, bot,bot_id):
     bot.reply_to(message, "أدخل معرف بوت الإشتراك الإجباري:")
     bot.register_next_step_handler(message, require_subscription_message, bot)
 
 
-def require_subscription_message(message, bot):
+def require_subscription_message(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     c_local.execute('UPDATE bots SET subscriptionBot=? WHERE bot_id=?', (message.text, bot_id))
     conn_local.commit()
     c_local.close()
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
-def set_name(message, bot):
+def set_name(message, bot,bot_id):
     bot.reply_to(message, "أدخل الإسم الجديد")
     bot.register_next_step_handler(message, setter_name, bot)
 
 
-def setter_name(message, bot):
+def setter_name(message, bot,bot_id):
     bot.set_my_name(message.text)
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
-def set_description(message, bot):
+def set_description(message, bot,bot_id):
     bot.reply_to(message, "أدخل الوصف الجديد")
     bot.register_next_step_handler(message, setter_description, bot)
 
 
-def setter_description(message, bot):
+def setter_description(message, bot,bot_id):
     bot.set_my_description(message.text)
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
-def set_short_description(message, bot):
+def set_short_description(message, bot,bot_id):
     bot.reply_to(message, "أدخل الوصف القصير الجديد")
     bot.register_next_step_handler(message, setter_short_description, bot)
 
 
-def setter_short_description(message, bot):
+def setter_short_description(message, bot,bot_id):
     bot.set_my_short_description(message.text)
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
-def set_start_message(message, bot):
+def set_start_message(message, bot,bot_id):
     bot.reply_to(message, "أدخل رسالة الإفتتاحية الجديدة")
     bot.register_next_step_handler(message, setter_start_message, bot)
 
 
-def setter_start_message(message, bot):
+def setter_start_message(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     c_local.execute('UPDATE bots SET startMsg=? WHERE bot_id=?', (message.text, bot_id))
     conn_local.commit()
     c_local.close()
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
-def set_receive_message(message, bot):
+def set_receive_message(message, bot,bot_id):
     bot.reply_to(message, "أدخل رسالة الإستقبال الجديدة")
     bot.register_next_step_handler(message, setter_receive_message, bot)
 
 
-def setter_receive_message(message, bot):
+def setter_receive_message(message, bot,bot_id):
     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
     c_local = conn_local.cursor()
     c_local.execute('UPDATE bots SET receiptMsg=? WHERE bot_id=?', (message.text, bot_id))
     conn_local.commit()
     c_local.close()
     bot.reply_to(message, "تم الحفظ بنجاح")
-    admin_menu(message, bot)
+    admin_menu(message, bot,bot_id)
 
 
 def get_bots():
     return c.execute('SELECT * FROM bots').fetchall()
 
 
-def run_bot(bot):
+def run_bot(bot,bot_id):
     @bot.message_handler(commands=['start'])
     def start(message):
         conn_local = sqlite3.connect('bots.db', check_same_thread=False)
         c_local = conn_local.cursor()
-        is_admin = check_admin_handler(message)
+        is_admin = check_admin_handler(message,bot_id)
         if is_admin:
-            admin_menu(message, bot)
+            admin_menu(message, bot,bot_id)
             conn_local.commit()
             c_local.close()
             return
@@ -274,7 +271,7 @@ def run_bot(bot):
     @bot.message_handler(content_types=['text', 'photo'])
     @bot.message_handler(func=lambda message: True)
     def echo(message):
-        is_admin = check_admin_handler(message)
+        is_admin = check_admin_handler(message,bot_id)
         if is_admin:
             switch = {
                 'الرسائل': messages,
@@ -287,7 +284,7 @@ def run_bot(bot):
                 'إلغاء الحظر': unban
             }
             if message.text in switch:
-                switch[message.text](message, bot)
+                switch[message.text](message, bot,bot_id)
             else:
                 reply_to_message = message.json.get('reply_to_message', None)
                 if reply_to_message and 'forward_from' in reply_to_message:
@@ -311,9 +308,6 @@ def run_bot(bot):
                     c_local.close()
                     bot.send_message(useridbytext, message.text)
                     
-
-
-
             return
         else:
             conn_local = sqlite3.connect('bots.db', check_same_thread=False)
@@ -344,12 +338,12 @@ def run_bot(bot):
 
             admins = c_local.execute('SELECT * FROM admins WHERE bot_id=?', (bot_id,)).fetchall()
             for admin in admins:
-                if admin[2]:
+                if admin[4]:
                     try:
-                        bot.forward_message(admin[2], message.chat.id, message.message_id)
+                        bot.forward_message(admin[4], message.chat.id, message.message_id)
                     except telebot.apihelper.ApiException as e:
-                        print(f"Failed to forward message to chat_id {admin[2]}: {e}")
-                        logging.error(f"Failed to forward message to chat_id {admin[2]}: {e}")
+                        print(f"Failed to forward message to chat_id {admin[4]}: {e}")
+                        logging.error(f"Failed to forward message to chat_id {admin[4]}: {e}")
             if not c_local.execute('SELECT * FROM messages WHERE user_id=? AND bot_id=?',
                                    (message.from_user.id, bot_id)).fetchone():
                 receipt_msg = c_local.execute('SELECT * FROM bots WHERE bot_id=?', (bot_id,)).fetchone()[4]
@@ -385,7 +379,7 @@ for bot_data in bots_data:
     bot_id = bot_data[2]
     token = bot_data[1]
     bot = telebot.TeleBot(token)
-    bot_thread = threading.Thread(target=run_bot, args=(bot,))
+    bot_thread = threading.Thread(target=run_bot, args=(bot,bot_id,))
     bot_threads.append(bot_thread)
 
 for bot_thread in bot_threads:
