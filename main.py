@@ -4,7 +4,7 @@ import logging
 import telebot
 from telebot import apihelper
 
-BOT_TOKEN = '5848326557:AAE00dflZddzH1e9ABLKwReT7ka6qltZHXA'
+BOT_TOKEN = '7201191345:AAH0VygfDhBRn8A3VqJWdWRqrA0XkzeZdN0'
 apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
 bot = telebot.TeleBot(BOT_TOKEN)
 
