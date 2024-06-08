@@ -68,7 +68,7 @@ def messages(message, bot,bot_id):
 
 def send_message(message, bot,bot_id):
     bot.reply_to(message, "أرسل الرسالة")
-    bot.register_next_step_handler(message, send_message_to_users, bot)
+    bot.register_next_step_handler(message, send_message_to_users, bot,bot_id)
 
 
 def send_message_to_users(message, bot,bot_id):
@@ -115,7 +115,7 @@ def stats(message, bot,bot_id):
 
 def ban(message, bot,bot_id):
     bot.reply_to(message, "أرسل معرف المستخدم")
-    bot.register_next_step_handler(message, ban_user, bot)
+    bot.register_next_step_handler(message, ban_user, bot,bot_id)
 
 
 def ban_user(message, bot,bot_id):
@@ -126,7 +126,7 @@ def ban_user(message, bot,bot_id):
 
 def unban(message, bot,bot_id):
     bot.reply_to(message, "أرسل معرف المستخدم")
-    bot.register_next_step_handler(message, unban_user, bot)
+    bot.register_next_step_handler(message, unban_user, bot,bot_id)
 
 
 def unban_user(message, bot,bot_id):
@@ -150,7 +150,7 @@ def settings(message, bot,bot_id):
 
 def require_subscription(message, bot,bot_id):
     bot.reply_to(message, "أدخل معرف بوت الإشتراك الإجباري:")
-    bot.register_next_step_handler(message, require_subscription_message, bot)
+    bot.register_next_step_handler(message, require_subscription_message, bot,bot_id)
 
 
 def require_subscription_message(message, bot,bot_id):
@@ -165,7 +165,7 @@ def require_subscription_message(message, bot,bot_id):
 
 def set_name(message, bot,bot_id):
     bot.reply_to(message, "أدخل الإسم الجديد")
-    bot.register_next_step_handler(message, setter_name, bot)
+    bot.register_next_step_handler(message, setter_name, bot,bot_id)
 
 
 def setter_name(message, bot,bot_id):
@@ -176,7 +176,7 @@ def setter_name(message, bot,bot_id):
 
 def set_description(message, bot,bot_id):
     bot.reply_to(message, "أدخل الوصف الجديد")
-    bot.register_next_step_handler(message, setter_description, bot)
+    bot.register_next_step_handler(message, setter_description, bot,bot_id)
 
 
 def setter_description(message, bot,bot_id):
@@ -187,7 +187,7 @@ def setter_description(message, bot,bot_id):
 
 def set_short_description(message, bot,bot_id):
     bot.reply_to(message, "أدخل الوصف القصير الجديد")
-    bot.register_next_step_handler(message, setter_short_description, bot)
+    bot.register_next_step_handler(message, setter_short_description, bot,bot_id)
 
 
 def setter_short_description(message, bot,bot_id):
@@ -198,7 +198,7 @@ def setter_short_description(message, bot,bot_id):
 
 def set_start_message(message, bot,bot_id):
     bot.reply_to(message, "أدخل رسالة الإفتتاحية الجديدة")
-    bot.register_next_step_handler(message, setter_start_message, bot)
+    bot.register_next_step_handler(message, setter_start_message, bot,bot_id)
 
 
 def setter_start_message(message, bot,bot_id):
@@ -213,7 +213,7 @@ def setter_start_message(message, bot,bot_id):
 
 def set_receive_message(message, bot,bot_id):
     bot.reply_to(message, "أدخل رسالة الإستقبال الجديدة")
-    bot.register_next_step_handler(message, setter_receive_message, bot)
+    bot.register_next_step_handler(message, setter_receive_message, bot,bot_id)
 
 
 def setter_receive_message(message, bot,bot_id):
@@ -266,7 +266,7 @@ def run_bot(bot,bot_id):
             'set_start_message': set_start_message,
             'set_receive_message': set_receive_message
         }
-        switch[call.data](call.message, bot)
+        switch[call.data](call.message, bot,bot_id)
 
     @bot.message_handler(content_types=['text', 'photo'])
     @bot.message_handler(func=lambda message: True)
