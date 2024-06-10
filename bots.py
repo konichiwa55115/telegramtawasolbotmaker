@@ -254,7 +254,8 @@ def run_bot(bot,bot_id):
         conn_local.commit()
         c_local.close()
         if start_msg :
-           bot.reply_to(message, start_msg)
+           sentmessage = start_msg + " \n\nتم عمل البوت بواسطة خدمة صانع بوتات التواصل \n https://t.me/chatbotmaker15115bot"
+           bot.reply_to(message, sentmessage,disable_web_page_preview=True)
 
     @bot.callback_query_handler(func=lambda call: True)
     @check_admin
