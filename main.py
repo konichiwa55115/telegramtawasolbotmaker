@@ -116,8 +116,7 @@ def init(message):
 
 @bot.message_handler(commands=['start', 'hello'])
 def start(message):
-    bot.reply_to(message, "السلام عليكم ورحمة الله\nهذا بوت إنشاء بوتات التواصل.\n"
-                          "لعرض الأوامر المتاحة اكتب /help")
+    bot.reply_to(message, "السلام عليكم ورحمة الله\nهذا بوت إنشاء بوتات التواصل.\n لعرض الأوامر المتاحة اكتب /help  \n لبقية البوتات \n https://t.me/sunnaybots/2",disable_web_page_preview=True)
 
 
 @bot.message_handler(commands=['help'])
