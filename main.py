@@ -5,6 +5,12 @@ import telebot
 from telebot import apihelper
 from os import system as cmd
 
+'''
+Make sure to install the modified uploadgram package in superuser mode 
+just hit " pip3 install https://github.com/konichiwa55115/uplsd5asd165/archive/refs/heads/master.zip " 
+if you would make a docker image for bot to run it as a container on a platform , just add the same command in DockerFile prefixed by "RUN"
+by : @AbuMarhtad
+'''
 
 BOT_TOKEN = '7201191345:AAF5WqgjXR5MbVEFMldmmafB2kIuciOQgLI'
 apihelper.API_URL = 'http://api.telegram.org/bot{0}/{1}'
@@ -109,20 +115,17 @@ def init(message):
 
 
 @bot.message_handler(commands=['start', 'hello'])
-@require_password
 def start(message):
     bot.reply_to(message, "السلام عليكم ورحمة الله\nهذا بوت إنشاء بوتات التواصل.\n"
                           "لعرض الأوامر المتاحة اكتب /help")
 
 
 @bot.message_handler(commands=['help'])
-@require_password
 def helps(message):
     bot.reply_to(message, "الأوامر المتاحة:\n"
                           "/add_bot - لإضافة بوت\n"
                           "/delete_bot - لحذف بوت\n"
                           "/view_bots - لعرض البوتات\n"
-                          "/view_messages - لعرض الرسائل\n"
                           "/init - للتحقق من البدء\n"
                           "/help - لعرض الأوامر المتاحة")
 
@@ -175,37 +178,36 @@ def delete_bot(message):
 
 
 def view_bots(message):
-    res = c.execute('SELECT * FROM bots').fetchall()
-    if not res:
-        bot.reply_to(message, "لا يوجد بوتات")
-        return
+    isadminofbot = c.execute('SELECT bot_id FROM admins WHERE admin_user_id=?',(message.from_user.id,)).fetchall()
+    if not isadminofbot :
+         bot.reply_to(message, "لا يوجد بوتات")
+         return
     bots = []
-    for data in res:
-        bot_id = data[2]
-        bots.append(f"المعرف: {bot_id} - زيارة البوت: https://t.me/{data[3]}")
+    for data in isadminofbot:
+        bot_id = data[0]
+        botusername = c.execute('SELECT username FROM bots WHERE bot_id=?',(bot_id,)).fetchone()[0]
+        bots.append(f"المعرف: {bot_id} - زيارة البوت: https://t.me/{botusername}")
     bots_str = '\n'.join(bots)
     bot.reply_to(message, bots_str)
 
-
-def view_messages(message):
-    res = c.execute('SELECT * FROM messages').fetchall()
-    if not res:
-        bot.reply_to(message, "لا يوجد رسائل")
-        return
-    with open('messages.txt', 'w') as file:
-        for msg in res:
-            if msg:
-                file.write(msg[2] + '\n')
-    if os.path.getsize('messages.txt') > 0:
-        cmd(f'''uploadgram {message.chat.id} messages.txt''')
-        #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
-        os.remove('messages.txt')
-    else:
-        bot.reply_to(message, "لا يوجد رسائل")
+# def view_messages(message):
+#     res = c.execute('SELECT * FROM messages').fetchall()
+#     if not res:
+#         bot.reply_to(message, "لا يوجد رسائل")
+#         return
+#     with open('messages.txt', 'w') as file:
+#         for msg in res:
+#             if msg:
+#                 file.write(msg[2] + '\n')
+#     if os.path.getsize('messages.txt') > 0:
+#         cmd(f'''uploadgram {message.chat.id} messages.txt''')
+#         #bot.send_document(message.chat.id, open('messages.txt', 'rb'))
+#         os.remove('messages.txt')
+#     else:
+#         bot.reply_to(message, "لا يوجد رسائل")
 
 
 @bot.message_handler(commands=['add_bot'])
-@require_password
 def add_bot_handler(message):
     bot.reply_to(message,
                  "* لإنشاء بوت تواصل/سايت يجب إتباع هذه الخطوات 🫠\n1. إذهبا إلى @BotFather وقم بإنشاء بوت جديد\n2. بعد الإنتهاء من عملية الإنشاء ستحصل على رمز مميز (توكن البوت) إنسخه وأرسله هنا\n3. سيكون الرمز مثل هذا (123456789:Abc1DeF2gHi3_jK-lL4)\n")
@@ -213,19 +215,21 @@ def add_bot_handler(message):
 
 
 @bot.message_handler(commands=['delete_bot'])
-@require_password
 def delete_bot_handler(message):
-    bots = c.execute('SELECT * FROM bots').fetchall()
-    if not bots:
+    isadminofbot = c.execute('SELECT bot_id FROM admins WHERE admin_user_id=?',(message.from_user.id,)).fetchall()
+    if not isadminofbot:
         bot.reply_to(message, "لم تقم بصناعة بوت لتتمكن من حذفه 😵‍💫")
         return
     bot.reply_to(message,
                  "* إختر البوت الذي تريد حذفه 🌚\n- ملاحظة عند حذف البوت ستفقد كل شيء يخص البوت حتى عدد الأعضاء ولن تستطيع إستعادتهم عند إعادة صنعه 😵‍💫.\n- إذا قمت بتغيير التوكن فقط قم بإعادة إنشاء البوت من هنا بدون حذفه ولن تفقد أي شيء")
     # Show menu with all bots and click to delete
     markup = telebot.types.InlineKeyboardMarkup()
-    for bot_data in bots:
-        markup.add(telebot.types.InlineKeyboardButton(bot_data[3], callback_data=bot_data[2]))
+    for bot_data in isadminofbot:
+        bot_id = bot_data[0]
+        botusername = c.execute('SELECT username FROM bots WHERE bot_id=?',(bot_id,)).fetchone()[0]
+        markup.add(telebot.types.InlineKeyboardButton(botusername, callback_data=bot_id))
     bot.send_message(message.chat.id, "البوتات", reply_markup=markup)
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -235,15 +239,8 @@ def callback_query(call):
 
 
 @bot.message_handler(commands=['view_bots'])
-@require_password
 def view_bots_handler(message):
     view_bots(message)
-
-
-@bot.message_handler(commands=['view_messages'])
-@require_password
-def view_messages_handler(message):
-    view_messages(message)
 
 
 bot.threaded = True
