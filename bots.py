@@ -268,7 +268,7 @@ def run_bot(bot,bot_id):
         }
         switch[call.data](call.message, bot,bot_id)
 
-    @bot.message_handler(content_types=['text', 'photo'])
+    @bot.message_handler(content_types=['text', 'photo','audio','video','sticker','voice','document'])
     @bot.message_handler(func=lambda message: True)
     def echo(message):
         is_admin = check_admin_handler(message,bot_id)
@@ -289,24 +289,47 @@ def run_bot(bot,bot_id):
                 reply_to_message = message.json.get('reply_to_message', None)
                 if reply_to_message and 'forward_from' in reply_to_message:
                     forward_user_id = reply_to_message['forward_from']['id']
-                    bot.send_message(forward_user_id, message.text)
+                    if message.text:
+                     bot.send_message(forward_user_id, message.text)
+                    elif message.photo:
+                         bot.send_photo(forward_user_id, message.photo.file_id)
+                    elif message.audio:
+                        bot.send_audio(forward_user_id,   message.audio.file_id)
+                    elif message.voice:
+                        bot.send_voice(forward_user_id, message.voice.file_id)
+                    elif message.document :
+                        bot.send_document(forward_user_id,  message.document.file_id)
+                    elif message.sticker :
+                         bot.send_sticker(forward_user_id,message.sticker.file_id)
                 elif reply_to_message and 'forward_from' not in reply_to_message:
                     if reply_to_message and 'text' in reply_to_message :
                      forrwardedmessagetext = reply_to_message['text']   
                     elif reply_to_message and 'photo' in reply_to_message:
                      forrwardedmessagetext = reply_to_message['photo'][1]['file_unique_id']
                     elif reply_to_message and 'audio' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['audio'][1]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['audio']['file_unique_id']
                     elif reply_to_message and 'document' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['document'][1]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['document']['file_unique_id']
                     elif reply_to_message and 'voice' in reply_to_message:
-                     forrwardedmessagetext = reply_to_message['voice'][1]['file_unique_id']
+                     forrwardedmessagetext = reply_to_message['voice']['file_unique_id']
                     conn_local = sqlite3.connect('bots.db', check_same_thread=False)
                     c_local = conn_local.cursor()
                     useridbytext = c_local.execute('SELECT user_id FROM messages WHERE rawmessage=?', (forrwardedmessagetext,)).fetchone()[0]
                     conn_local.commit()
                     c_local.close()
-                    bot.send_message(useridbytext, message.text)
+                    if message.text:
+                     bot.send_message(useridbytext, message.text)
+                    elif message.photo:
+                         bot.send_photo(useridbytext, message.photo.file_id)
+                    elif message.audio:
+                        bot.send_audio(useridbytext,  message.audio.file_id)
+                    elif message.voice:
+                        bot.send_voice(useridbytext,  message.voice.file_id)
+                    elif message.document :
+                        bot.send_document(useridbytext,  message.document.file_id)
+                    elif message.sticker :
+                         bot.send_sticker(useridbytext,  message.sticker.file_id)
+
                     
             return
         else:
@@ -355,20 +378,40 @@ def run_bot(bot,bot_id):
             fullname = f"{first_name} {last_name}"
             if message.text :
                 text = message.text
+                pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: {message.text}"
+                c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                            (message.from_user.id, pretty_message, bot_id, text))
+                conn_local.commit()
+                c_local.close()
             elif message.photo :
                 text = message.photo[1].file_unique_id
-            elif message.audio :
-                text = message.audio[1].file_unique_id
-            elif message.voice :
-                 text = message.voice[1].file_unique_id
-            elif message.document :
-                 text = message.document[1].file_unique_id
-
-            pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: {message.text}"
-            c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: photo"
+                c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
                             (message.from_user.id, pretty_message, bot_id, text))
-            conn_local.commit()
-            c_local.close()
+                conn_local.commit()
+                c_local.close()
+            elif message.audio :
+                text = message.audio.file_unique_id
+                pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: audio"
+                c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                            (message.from_user.id, pretty_message, bot_id, text))
+                conn_local.commit()
+                c_local.close()
+            elif message.voice :
+                 text = message.voice.file_unique_id
+                 pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: voice"
+                 c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                            (message.from_user.id, pretty_message, bot_id, text))
+                 conn_local.commit()
+                 c_local.close()
+            elif message.document :
+                 text = message.document.file_unique_id
+                 pretty_message = f"المستخدم: {first_name} {last_name}\n المعرف: {id_user}\n الرسالة: document"
+                 c_local.execute('INSERT INTO messages (user_id, message, bot_id, rawmessage) VALUES (?, ?, ?,?)',
+                            (message.from_user.id, pretty_message, bot_id, text))
+                 conn_local.commit()
+                 c_local.close()
+
 
     bot.threaded = True
     bot.polling(non_stop=True, skip_pending=True)
