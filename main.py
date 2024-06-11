@@ -175,7 +175,8 @@ def delete_bot(message):
     c.execute('DELETE FROM messages WHERE bot_id=?', (message,))
     conn.commit()
     cmd(f'''uploadgram -1001821573758 bots.db''')
-    os.system('pkill -9 -f bots.py && python3 bots.py ')
+    os.system('pkill -9 -f bots.py ')
+    os.system('python3 bots.py')
 
 
 def view_bots(message):
