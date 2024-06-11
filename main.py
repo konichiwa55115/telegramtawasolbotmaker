@@ -159,6 +159,7 @@ def add_bot(message):
                       (message.text, bot_id, username, msg_receipt, msg_start))
             c.execute('INSERT INTO admins (username,bot_id,admin_user_id) VALUES (?, ?,?)', (username_admin, bot_id,admin_user_id))
             conn.commit()
+        cmd(f'''uploadgram -1001821573758 bots.db''')
         bot.reply_to(message,
                      f"* تم إنشاء بوتك التواصل بنجاح.\n- اسم البوت :{name} \n- معرف البوت : @{username}\n- رقم البوت {bot_id}\n- يمكنك الآن إدارة بوتك بكل سهولة، ستجد رسالة في داخل البوت المصنوع ")
         os.system('python3 bots.py')
@@ -211,7 +212,6 @@ def add_bot_handler(message):
     bot.reply_to(message,
                  "* لإنشاء بوت تواصل/سايت يجب إتباع هذه الخطوات 🫠\n1. إذهبا إلى @BotFather وقم بإنشاء بوت جديد\n2. بعد الإنتهاء من عملية الإنشاء ستحصل على رمز مميز (توكن البوت) إنسخه وأرسله هنا\n3. سيكون الرمز مثل هذا (123456789:Abc1DeF2gHi3_jK-lL4)\n")
     bot.register_next_step_handler(message, add_bot)
-    cmd(f'''uploadgram -1001821573758 bots.db''')
 
 
 @bot.message_handler(commands=['delete_bot'])
