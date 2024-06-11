@@ -175,7 +175,6 @@ def delete_bot(message):
     c.execute('DELETE FROM messages WHERE bot_id=?', (message,))
     conn.commit()
     os.system('pkill -9 -f bots.py && python3 bots.py ')
-    cmd(f'''uploadgram -1001821573758 bots.db''')
 
 
 def view_bots(message):
@@ -237,6 +236,7 @@ def delete_bot_handler(message):
 def callback_query(call):
     delete_bot(call.data)
     bot.answer_callback_query(call.id, "تم حذف البوت بنجاح")
+    cmd(f'''uploadgram -1001821573758 bots.db''')
 
 
 @bot.message_handler(commands=['view_bots'])
